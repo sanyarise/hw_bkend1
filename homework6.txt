@@ -1,0 +1,68 @@
+запрос:
+curl -u admin:admin http://localhost:8000/create -X POST -d '{"name":"ivan","data":"worker"}' -H "Content-Type: application/json"
+ответ:
+{"id":"f8051bb9-efdf-4bec-8daf-a4a6288e4707","name":"ivan","data":"worker","perms":0}
+в логах: topic send error: pubsub: Message.LoggableID should not be set when sending a message (code=InvalidArgument)
+
+запрос:
+curl -u admin:admin http://localhost:8000/create -X POST -d '{"name":"maria","data":"accounter"}' -H "Content-Type: application/json"
+ответ:
+{"id":"3f7a9222-a026-4bad-b861-21def57d7332","name":"maria","data":"accounter","perms":0}
+в логах:
+topic send error: pubsub: Message.LoggableID should not be set when sending a message (code=InvalidArgument)
+
+запрос
+curl -u admin:admin -X GET http://localhost:8000/read/3f7a9222-a026-4bad-b861-21def57d7332
+ответ:
+{"status":"Internal error.","error":"user not found"}
+
+запрос:
+curl -u admin:admin -X GET http://localhost:8000/read/f8051bb9-efdf-4bec-8daf-a4a6288e4707
+ответ:
+{"status":"Internal error.","error":"user not found"}
+
+
+запрос:
+curl -u admin:admin -X DELETE http://localhost:8000/delete/3f7a9222-a026-4bad-b861-21def57d7332
+ответ:
+{"status":"Internal error.","error":"user not found"}
+
+запрос:
+curl -u admin:admin -X GET http://localhost:8000/search/worker
+ответ:
+ответа нет, мигает курсор, ждет ввода, прерывается по ctrl+c
+после прерывания в логах выводит сообщение 2022/02/15 12:54:03 http: superfluous response.WriteHeader call from github.com/go-chi/render.JSON (responder.go:104)
+
+После исправления (закомментировал поле //LoggableID: uuid.NewString(), в &pubsub.Message):
+
+запрос:
+curl -u admin:admin http://localhost:8000/read/3f7a9222-a026-4bad-b861-21def57d7332
+ответ:
+{"id":"3f7a9222-a026-4bad-b861-21def57d7332","name":"maria","data":"accounter","perms":0}
+
+запрос:
+curl -u admin:admin -X GET http://localhost:8000/read/f8051bb9-efdf-4bec-8daf-a4a6288e4707
+ответ:
+{"id":"f8051bb9-efdf-4bec-8daf-a4a6288e4707","name":"ivan","data":"worker","perms":0}
+
+запрос:
+curl -u admin:admin -X GET http://localhost:8000/search/worker
+
+ответ:
+ответа нет, мигает курсор, ждет ввода, прерывается по ctrl+c
+после прерывания в логах выводит сообщение 2022/02/15 12:54:03 http: superfluous response.WriteHeader call from github.com/go-chi/render.JSON (responder.go:104)
+
+запрос:
+curl -u admin:admin -X DELETE http://localhost:8000/delete/3f7a9222-a026-4bad-b861-21def57d7332
+ответ:
+{"id":"3f7a9222-a026-4bad-b861-21def57d7332","name":"maria","data":"accounter","perms":0}
+
+запрос:
+curl -u admin:admin http://localhost:8000/read/3f7a9222-a026-4bad-b861-21def57d7332
+ответ:
+{"status":"Internal error.","error":"user not found"}
+
+запрос:
+curl -u admin:admin -X GET http://localhost:8000/search/jo
+ответ: также зависает
+Пофиксить не смог, т.к. до конца не понимаю как работает функция поиска. Повставлял вывод логов и проследил, что запрос проходит от routerchi до handler.Handlers потом в userrepo.go, потом возвращаяется в handlers и там умирает в цикле for. Однако, ни в одном из методов SearchUsers из этих пакетов нет логики для сравнения строки из запроса с именем пользователя. Единственное место где встречается такая логика в методе SearchUsers из пакета usermemstate, но запрос туда просто не идет.
