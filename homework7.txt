@@ -1,0 +1,45 @@
+запрос:
+curl -u admin:admin http://localhost:8000/create -X POST -d '{"name":"ivan","data":"worker"}' -H "Content-Type: application/json"
+ответ:
+{"id":"7a7d6702-6ee4-451e-8f80-357caa0a7b2e","name":"ivan","data":"worker","perms":0}
+
+запрос:
+curl -u admin:admin http://localhost:8000/create -X POST -d '{"name":"maria","data":"accounter"}' -H "Content-Type: application/json"
+ответ:
+{"id":"92c9e5fa-ef01-4f12-b1c5-07290f2b8502","name":"maria","data":"accounter","perms":0}
+
+запрос
+curl -u admin:admin -X GET http://localhost:8000/read/7a7d6702-6ee4-451e-8f80-357caa0a7b2e
+ответ:
+{"id":"7a7d6702-6ee4-451e-8f80-357caa0a7b2e","name":"ivan","data":"worker","perms":0}
+
+
+запрос:
+curl -u admin:admin -X GET http://localhost:8000/read/92c9e5fa-ef01-4f12-b1c5-07290f2b8502
+ответ:
+{"id":"92c9e5fa-ef01-4f12-b1c5-07290f2b8502","name":"maria","data":"accounter","perms":0}
+
+запрос:
+curl -u admin:admin -X GET http://localhost:8000/search/i
+ответ:
+[
+{"id":"7a7d6702-6ee4-451e-8f80-357caa0a7b2e","name":"ivan","data":"worker","perms":493}
+,
+{"id":"92c9e5fa-ef01-4f12-b1c5-07290f2b8502","name":"maria","data":"accounter","perms":493}
+]
+
+запрос:
+curl -u admin:admin -X DELETE http://localhost:8000/delete/7a7d6702-6ee4-451e-8f80-357caa0a7b2e
+ответ:
+{"id":"7a7d6702-6ee4-451e-8f80-357caa0a7b2e","name":"ivan","data":"worker","perms":0}
+
+запрос:
+curl -u admin:admin -X GET http://localhost:8000/search/i
+ответ:
+[
+{"id":"92c9e5fa-ef01-4f12-b1c5-07290f2b8502","name":"maria","data":"accounter","perms":493}
+]
+
+Вывод: данная реализация приложения работает как и задумывалось
+
+
